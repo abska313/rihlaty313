@@ -1,21 +1,27 @@
-const CACHE_NAME = 'abska-214-v1';
-const CORE_ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.webmanifest',
-  '/icon.svg',
-  '/pwa-192x192.png',
-  '/pwa-512x512.png',
-  '/apple-touch-icon.png'
-];
+const CACHE_NAME = 'abska-214-v2';
 
-// Install Event - Pre-cache core files
+// Install Event - Pre-cache core files relative to registration scope
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(CORE_ASSETS).catch((err) => {
-        console.warn('[SW] Pre-caching warning:', err);
-      });
+    caches.open(CACHE_NAME).then(async (cache) => {
+      const scope = self.registration.scope;
+      const assetsToCache = [
+        scope,
+        `${scope}index.html`,
+        `${scope}manifest.webmanifest`,
+        `${scope}icon.svg`,
+        `${scope}pwa-192x192.png`,
+        `${scope}pwa-512x512.png`,
+        `${scope}apple-touch-icon.png`
+      ];
+
+      for (const asset of assetsToCache) {
+        try {
+          await cache.add(asset);
+        } catch (e) {
+          console.warn('[SW] Could not pre-cache asset:', asset, e);
+        }
+      }
     }).then(() => self.skipWaiting())
   );
 });
@@ -40,7 +46,7 @@ self.addEventListener('fetch', (event) => {
   // Only handle GET requests
   if (request.method !== 'GET') return;
 
-  // Ignore non-http/https (e.g. chrome-extension)
+  // Ignore non-http/https
   if (!request.url.startsWith('http')) return;
 
   // For HTML page navigation, try network first, then cache, then offline fallback
@@ -57,7 +63,9 @@ self.addEventListener('fetch', (event) => {
         .catch(async () => {
           const cachedResponse = await caches.match(request);
           if (cachedResponse) return cachedResponse;
-          return caches.match('/');
+          const fallback = await caches.match(self.registration.scope);
+          if (fallback) return fallback;
+          return caches.match(`${self.registration.scope}index.html`);
         })
     );
     return;
