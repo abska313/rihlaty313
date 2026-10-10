@@ -1,6 +1,0 @@
-{
-  "name": "ABSKA — 214",
-  "description": "نظام شخصي متكامل لإحداث تحوّل شامل في الحياة خلال 214 يومًا — يعمل دون إنترنت مع حفظ محلي دائم، وتتبّع متدرّج للمهام، والعادات، وتطوير الشخصية.",
-  "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
